@@ -12,6 +12,7 @@ import (
 	"time"
 	"unsafe"
 
+	shell "github.com/d2r2/go-shell"
 	"github.com/davecgh/go-spew/spew"
 )
 

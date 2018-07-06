@@ -158,13 +158,6 @@ func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float
 	if err != nil {
 		return -1, -1, err
 	}
-	// Decode 5th byte: control sum to verify all data received from sensor
-	sum, err := decodeByte(pulses, 64)
-	if err != nil {
-		return -1, -1, err
-	}
-	// Produce data consistency check
-	calcSum := byte(b0 + b1 + b2 + b3)
 	// Extract temprature and humidity depending on sensor type
 	temperature, humidity = 0.0, 0.0
 	if sensorType == DHT11 {

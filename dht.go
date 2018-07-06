@@ -12,7 +12,6 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/d2r2/go-shell"
 	"github.com/davecgh/go-spew/spew"
 )
 
@@ -134,7 +133,6 @@ func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float
 	} else if len(pulses) == 83 {
 		pulses = pulses[1:]
 	} else if len(pulses) != 82 {
-		printPulseArrayForDebug(pulses)
 		return -1, -1, fmt.Errorf("Can't decode pulse array received from "+
 			"DHTxx sensor, since incorrect length: %d", len(pulses))
 	}
@@ -166,18 +164,6 @@ func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float
 	}
 	// Produce data consistency check
 	calcSum := byte(b0 + b1 + b2 + b3)
-	if sum != calcSum {
-		err := errors.New(spew.Sprintf(
-			"CRCs doesn't match: checksum from sensor(%v) != "+
-				"calculated checksum(%v=%v+%v+%v+%v)",
-			sum, calcSum, b0, b1, b2, b3))
-		return -1, -1, err
-	} else {
-		lg.Debugf("CRCs verified: checksum from sensor(%v) = calculated checksum(%v=%v+%v+%v+%v)",
-			sum, calcSum, b0, b1, b2, b3)
-	}
-	// Debug output for 5 bytes
-	lg.Debugf("Decoded from DHTxx sensor: [%d, %d, %d, %d, %d]", b0, b1, b2, b3, sum)
 	// Extract temprature and humidity depending on sensor type
 	temperature, humidity = 0.0, 0.0
 	if sensorType == DHT11 {
@@ -196,17 +182,6 @@ func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float
 	}
 	// Success
 	return temperature, humidity, nil
-}
-
-// Print bunch of pulses for debug purpose.
-func printPulseArrayForDebug(pulses []Pulse) {
-	// var buf bytes.Buffer
-	// for i, pulse := range pulses {
-	// 	buf.WriteString(fmt.Sprintf("pulse %3d: %v, %v\n", i,
-	// 		pulse.Value, pulse.Duration))
-	// }
-	// lg.Debugf("Pulse count %d:\n%v", len(pulses), buf.String())
-	lg.Debugf("Pulses received from DHTxx sensor: %v", pulses)
 }
 
 // Send activation request to DHTxx sensor via specific pin.
@@ -231,7 +206,6 @@ func ReadDHTxx(sensorType SensorType, pin int,
 		return -1, -1, err
 	}
 	// Output debug information
-	printPulseArrayForDebug(pulses)
 	// Decode pulses
 	temp, hum, err := decodeDHTxxPulses(sensorType, pulses)
 	if err != nil {
@@ -265,7 +239,6 @@ func ReadDHTxxWithRetry(sensorType SensorType, pin int, boostPerfFlag bool,
 		temp, hum, err := ReadDHTxx(sensorType, pin, boostPerfFlag)
 		if err != nil {
 			if retry > 0 {
-				lg.Warning(err)
 				retry--
 				retried++
 				select {

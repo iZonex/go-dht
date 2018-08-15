@@ -24,6 +24,8 @@ func (this SensorType) String() string {
 		return "DHT11"
 	} else if this == DHT22 {
 		return "DHT22"
+	} else if this == AM2301 {
+		return "AM2301"
 	} else if this == AM2302 {
 		return "AM2302"
 	} else {
@@ -36,8 +38,10 @@ const (
 	DHT11 SensorType = iota + 1
 	// More expensive and precise than DHT11
 	DHT22
+	DHT21
 	// Aka DHT22
 	AM2302 = DHT22
+	AM2301 = DHT21
 )
 
 // Keep pulse state with how long it lasted.
@@ -127,7 +131,11 @@ func decodeByte(pulses []Pulse, start int) (byte, error) {
 // convert them to temperature and humidity.
 func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float32,
 	humidity float32, err error) {
-	if len(pulses) == 85 {
+	if len(pulses) == 133 {
+		pulses = pulses[3:]
+	} else if len(pulses) == 132 {
+		pulses = pulses[2:]
+	} else if len(pulses) == 85 {
 		pulses = pulses[3:]
 	} else if len(pulses) == 84 {
 		pulses = pulses[2:]
@@ -165,6 +173,12 @@ func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float
 		temperature = float32(b2)
 	} else if sensorType == DHT22 {
 		humidity = (float32(b0)*256 + float32(b1)) / 10.0
+		temperature = (float32(b2&0x7F)*256 + float32(b3)) / 10.0
+		if b2&0x80 != 0 {
+			temperature *= -1.0
+		}
+	} else if sensorType == DHT21 {
+                humidity = (float32(b0)*256 + float32(b1)) / 10.0
 		temperature = (float32(b2&0x7F)*256 + float32(b3)) / 10.0
 		if b2&0x80 != 0 {
 			temperature *= -1.0

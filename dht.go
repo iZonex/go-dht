@@ -131,9 +131,7 @@ func decodeByte(pulses []Pulse, start int) (byte, error) {
 // convert them to temperature and humidity.
 func decodeDHTxxPulses(sensorType SensorType, pulses []Pulse) (temperature float32,
 	humidity float32, err error) {
-	if len(pulses) == 133 {
-		pulses = pulses[3:]
-	} else if len(pulses) == 132 {
+	if len(pulses) == 132 {
 		pulses = pulses[2:]
 	} else if len(pulses) == 85 {
 		pulses = pulses[3:]
